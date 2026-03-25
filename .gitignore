@@ -28,7 +28,7 @@ coverage
 cypress/videos
 cypress/screenshots
 
-# Cursor 
+# 로컬 에디터 전용(규칙 캐시 등)
 .cursor/*
 
 # Editor directories and files
