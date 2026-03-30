@@ -9,7 +9,6 @@ export type SheetLoadStatus = 'idle' | 'loading' | 'ready' | 'error'
 export type SheetDataSource = 'none' | 'sample' | 'file'
 
 export const useSheetStore = defineStore('sheet', () => {
-  const appTitle = ref('Smart-Sheet BI Dashboard')
   const rows = ref<SheetRow[]>([])
   const columns = ref<string[]>([])
 
@@ -117,7 +116,6 @@ export const useSheetStore = defineStore('sheet', () => {
   }
 
   return {
-    appTitle,
     rows,
     columns,
     dataSource,

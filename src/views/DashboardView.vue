@@ -17,13 +17,14 @@ import type {
 import type { SheetRow } from '@/types/sheet'
 import { SHEET_ROW_ID_KEY, stripSheetRowMeta } from '@/types/sheet'
 import { inferSheetColumnKind } from '@/composables/useSheetColumnKind'
+import { useSettingsStore } from '@/store/settings'
 import { useSheetStore } from '@/store/sheet'
 
 ensureAgGridRegistered()
 
 const sheet = useSheetStore()
+const settings = useSettingsStore()
 const {
-  appTitle,
   rows,
   columns,
   loadStatus,
@@ -33,13 +34,14 @@ const {
   sheetNames,
   activeSheetName,
 } = storeToRefs(sheet)
+const { appTitle, lockFirstColumnByDefault } = storeToRefs(settings)
 
 const { clearError, loadSample, loadExcelFile, selectSheet, addEmptyRow, removeRows } = sheet
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const isDragOver = ref(false)
 const previewTab = ref<'grid' | 'json'>('grid')
-const lockFirstColumn = ref(false)
+const lockFirstColumn = ref(lockFirstColumnByDefault.value)
 
 const gridApi = ref<GridApi<SheetRow> | null>(null)
 const toolbarTick = ref(0)
