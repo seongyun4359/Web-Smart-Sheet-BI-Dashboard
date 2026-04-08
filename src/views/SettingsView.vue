@@ -13,12 +13,16 @@ const form = reactive({
   appTitle: settings.appTitle,
   themeMode: settings.themeMode,
   lockFirstColumnByDefault: settings.lockFirstColumnByDefault,
+  chartLabelColumn: settings.chartLabelColumn ?? '',
+  chartValueColumn: settings.chartValueColumn ?? '',
 })
 
 const syncForm = () => {
   form.appTitle = settings.appTitle
   form.themeMode = settings.themeMode
   form.lockFirstColumnByDefault = settings.lockFirstColumnByDefault
+  form.chartLabelColumn = settings.chartLabelColumn ?? ''
+  form.chartValueColumn = settings.chartValueColumn ?? ''
 }
 
 const themeHint = computed(() => {
@@ -27,12 +31,16 @@ const themeHint = computed(() => {
   return '항상 밝은 화면으로 표시합니다.'
 })
 
+const normCol = (s: string) => (s.trim() === '' ? null : s.trim())
+
 const hasChanges = computed(() => {
   const current = snapshot.value
   return (
     form.appTitle.trim() !== current.appTitle ||
     form.themeMode !== current.themeMode ||
-    form.lockFirstColumnByDefault !== current.lockFirstColumnByDefault
+    form.lockFirstColumnByDefault !== current.lockFirstColumnByDefault ||
+    normCol(form.chartLabelColumn) !== current.chartLabelColumn ||
+    normCol(form.chartValueColumn) !== current.chartValueColumn
   )
 })
 
@@ -52,6 +60,8 @@ const applyChanges = () => {
     appTitle: form.appTitle,
     themeMode: form.themeMode,
     lockFirstColumnByDefault: form.lockFirstColumnByDefault,
+    chartLabelColumn: normCol(form.chartLabelColumn),
+    chartValueColumn: normCol(form.chartValueColumn),
   })
   syncForm()
   showToast(
@@ -172,6 +182,35 @@ const discardChanges = () => {
       </label>
     </section>
 
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+      <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">막대 차트 기본값</h2>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        대시보드 차트의 가로축(라벨)·세로축(값)으로 쓸 열 이름을 지정합니다. 비우면 데이터에 맞게 자동으로 고릅니다.
+      </p>
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        <label class="block space-y-2">
+          <span class="text-sm font-medium text-slate-800 dark:text-slate-200">라벨 열 (가로)</span>
+          <input
+            v-model="form.chartLabelColumn"
+            type="text"
+            class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none ring-0 placeholder:text-slate-400 focus:border-violet-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+            placeholder="비우면 자동"
+            autocomplete="off"
+          />
+        </label>
+        <label class="block space-y-2">
+          <span class="text-sm font-medium text-slate-800 dark:text-slate-200">값 열 (세로)</span>
+          <input
+            v-model="form.chartValueColumn"
+            type="text"
+            class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none ring-0 placeholder:text-slate-400 focus:border-violet-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+            placeholder="비우면 자동 (숫자 열)"
+            autocomplete="off"
+          />
+        </label>
+      </div>
+    </section>
+
     <section class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-900/40">
       <p class="text-sm text-slate-600 dark:text-slate-400">
         {{ hasChanges ? '저장되지 않은 변경사항이 있습니다.' : '현재 저장된 설정과 동일합니다.' }}
@@ -204,6 +243,14 @@ const discardChanges = () => {
         · 첫 열 잠금 기본값
         <strong class="font-semibold text-slate-900 dark:text-slate-100">
           {{ form.lockFirstColumnByDefault ? '켜짐' : '꺼짐' }}
+        </strong>
+        · 차트 라벨
+        <strong class="font-semibold text-slate-900 dark:text-slate-100">
+          {{ form.chartLabelColumn.trim() || '자동' }}
+        </strong>
+        · 차트 값
+        <strong class="font-semibold text-slate-900 dark:text-slate-100">
+          {{ form.chartValueColumn.trim() || '자동' }}
         </strong>
       </p>
     </section>

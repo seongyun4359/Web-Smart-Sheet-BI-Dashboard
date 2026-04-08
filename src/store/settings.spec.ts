@@ -28,6 +28,8 @@ describe('useSettingsStore', () => {
     expect(store.appTitle).toBe('맞춤 대시보드')
     expect(store.themeMode).toBe('dark')
     expect(store.lockFirstColumnByDefault).toBe(true)
+    expect(store.chartLabelColumn).toBeNull()
+    expect(store.chartValueColumn).toBeNull()
   })
 
   it('applySettings 호출 시 localStorage에 저장한다', () => {
@@ -38,12 +40,16 @@ describe('useSettingsStore', () => {
       appTitle: '영업 BI 보드',
       themeMode: 'light',
       lockFirstColumnByDefault: true,
+      chartLabelColumn: 'branch',
+      chartValueColumn: 'sales',
     })
 
     expect(JSON.parse(window.localStorage.getItem(SETTINGS_STORAGE_KEY) ?? '{}')).toEqual({
       appTitle: '영업 BI 보드',
       themeMode: 'light',
       lockFirstColumnByDefault: true,
+      chartLabelColumn: 'branch',
+      chartValueColumn: 'sales',
     })
   })
 
@@ -66,6 +72,8 @@ describe('useSettingsStore', () => {
       appTitle: '임시 제목',
       themeMode: 'dark',
       lockFirstColumnByDefault: true,
+      chartLabelColumn: 'x',
+      chartValueColumn: 'y',
     })
 
     store.resetToDefaults()
