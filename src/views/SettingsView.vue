@@ -93,7 +93,7 @@ const discardChanges = () => {
         UI 설정
       </h1>
       <p class="text-sm text-slate-600 dark:text-slate-400">
-        값을 수정한 뒤 적용하면 이 브라우저에 저장되며, 다음 방문 때도 유지됩니다.
+        값을 수정한 뒤 적용하면 이 브라우저에 저장되며, 다음 접속 때도 유지됩니다.
       </p>
     </header>
 
