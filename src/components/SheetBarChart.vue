@@ -78,7 +78,6 @@ watch(
   () =>
     [props.rows, props.columns, props.labelColumnKey, props.valueColumnKey] as const,
   () => draw(),
-  { deep: true },
 )
 onBeforeUnmount(() => {
   chart?.destroy()
