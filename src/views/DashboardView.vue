@@ -35,7 +35,7 @@ const {
   sheetNames,
   activeSheetName,
 } = storeToRefs(sheet)
-const { appTitle, lockFirstColumnByDefault, chartLabelColumn, chartValueColumn } =
+const { appTitle, lockFirstColumnByDefault, chartLabelColumn, chartValueColumn, requiredColumns } =
   storeToRefs(settings)
 
 const { clearError, loadSample, loadExcelFile, selectSheet, addEmptyRow, removeRows } = sheet
@@ -195,17 +195,11 @@ const jsonPreview = computed(() => {
 
 const hasData = computed(() => rows.value.length > 0 && columns.value.length > 0)
 
-/** 샘플/일반 엑셀에서 month·branch 가 있으면 필수로 검증 */
-const validationRequiredKeys = computed(() => {
-  const s = new Set(columns.value)
-  return (['month', 'branch'] as const).filter((k) => s.has(k)).map(String)
-})
-
 const validationResult = computed(() =>
   validateSheetData({
     columns: columns.value,
     rows: rows.value.map(stripSheetRowMeta),
-    requiredKeys: validationRequiredKeys.value,
+    requiredKeys: requiredColumns.value,
   }),
 )
 

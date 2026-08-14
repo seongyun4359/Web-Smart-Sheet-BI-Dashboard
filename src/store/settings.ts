@@ -11,6 +11,8 @@ export type SettingsState = {
   chartLabelColumn: string | null
   /** 막대 차트 세로축(값) 열 이름. null 이면 숫자 열 자동 추론 */
   chartValueColumn: string | null
+  /** 비어 있으면 안 되는 필수 컬럼 이름 목록 (데이터 검증에 사용) */
+  requiredColumns: string[]
 }
 
 export const SETTINGS_STORAGE_KEY = 'smart-sheet-ui-settings:v1'
@@ -21,6 +23,21 @@ export const DEFAULT_SETTINGS: SettingsState = {
   lockFirstColumnByDefault: false,
   chartLabelColumn: null,
   chartValueColumn: null,
+  requiredColumns: ['month', 'branch'],
+}
+
+const sanitizeRequiredColumns = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [...DEFAULT_SETTINGS.requiredColumns]
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const v of value) {
+    if (typeof v !== 'string') continue
+    const t = v.trim()
+    if (t === '' || seen.has(t)) continue
+    seen.add(t)
+    out.push(t)
+  }
+  return out
 }
 
 const isThemeMode = (value: unknown): value is ThemeMode =>
@@ -51,6 +68,7 @@ const sanitizeSettings = (value: unknown): SettingsState => {
         : typeof raw.chartValueColumn === 'string' && raw.chartValueColumn.trim() !== ''
           ? raw.chartValueColumn.trim()
           : null,
+    requiredColumns: sanitizeRequiredColumns(raw.requiredColumns),
   }
 }
 
@@ -60,6 +78,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const lockFirstColumnByDefault = ref(DEFAULT_SETTINGS.lockFirstColumnByDefault)
   const chartLabelColumn = ref<string | null>(DEFAULT_SETTINGS.chartLabelColumn)
   const chartValueColumn = ref<string | null>(DEFAULT_SETTINGS.chartValueColumn)
+  const requiredColumns = ref<string[]>([...DEFAULT_SETTINGS.requiredColumns])
   const hydrated = ref(false)
 
   const snapshot = computed<SettingsState>(() => ({
@@ -68,6 +87,7 @@ export const useSettingsStore = defineStore('settings', () => {
     lockFirstColumnByDefault: lockFirstColumnByDefault.value,
     chartLabelColumn: chartLabelColumn.value,
     chartValueColumn: chartValueColumn.value,
+    requiredColumns: requiredColumns.value,
   }))
 
   const hydrate = () => {
@@ -85,6 +105,7 @@ export const useSettingsStore = defineStore('settings', () => {
         lockFirstColumnByDefault.value = next.lockFirstColumnByDefault
         chartLabelColumn.value = next.chartLabelColumn
         chartValueColumn.value = next.chartValueColumn
+        requiredColumns.value = next.requiredColumns
       }
     } catch {
       window.localStorage.removeItem(SETTINGS_STORAGE_KEY)
@@ -105,6 +126,7 @@ export const useSettingsStore = defineStore('settings', () => {
     lockFirstColumnByDefault.value = next.lockFirstColumnByDefault
     chartLabelColumn.value = next.chartLabelColumn
     chartValueColumn.value = next.chartValueColumn
+    requiredColumns.value = next.requiredColumns
     if (hydrated.value) writeSnapshot(next)
   }
 
@@ -118,6 +140,7 @@ export const useSettingsStore = defineStore('settings', () => {
     lockFirstColumnByDefault,
     chartLabelColumn,
     chartValueColumn,
+    requiredColumns,
     hydrated,
     snapshot,
     hydrate,

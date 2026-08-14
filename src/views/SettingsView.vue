@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useToast } from '@/composables/useToast'
 import { useSettingsStore } from '@/store/settings'
@@ -15,7 +15,10 @@ const form = reactive({
   lockFirstColumnByDefault: settings.lockFirstColumnByDefault,
   chartLabelColumn: settings.chartLabelColumn ?? '',
   chartValueColumn: settings.chartValueColumn ?? '',
+  requiredColumns: [...settings.requiredColumns],
 })
+
+const newRequiredColumn = ref('')
 
 const syncForm = () => {
   form.appTitle = settings.appTitle
@@ -23,6 +26,22 @@ const syncForm = () => {
   form.lockFirstColumnByDefault = settings.lockFirstColumnByDefault
   form.chartLabelColumn = settings.chartLabelColumn ?? ''
   form.chartValueColumn = settings.chartValueColumn ?? ''
+  form.requiredColumns = [...settings.requiredColumns]
+  newRequiredColumn.value = ''
+}
+
+const addRequiredColumn = () => {
+  const t = newRequiredColumn.value.trim()
+  if (t === '' || form.requiredColumns.includes(t)) {
+    newRequiredColumn.value = ''
+    return
+  }
+  form.requiredColumns.push(t)
+  newRequiredColumn.value = ''
+}
+
+const removeRequiredColumn = (index: number) => {
+  form.requiredColumns.splice(index, 1)
 }
 
 const themeHint = computed(() => {
@@ -33,6 +52,9 @@ const themeHint = computed(() => {
 
 const normCol = (s: string) => (s.trim() === '' ? null : s.trim())
 
+const arraysEqual = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((v, i) => v === b[i])
+
 const hasChanges = computed(() => {
   const current = snapshot.value
   return (
@@ -40,7 +62,8 @@ const hasChanges = computed(() => {
     form.themeMode !== current.themeMode ||
     form.lockFirstColumnByDefault !== current.lockFirstColumnByDefault ||
     normCol(form.chartLabelColumn) !== current.chartLabelColumn ||
-    normCol(form.chartValueColumn) !== current.chartValueColumn
+    normCol(form.chartValueColumn) !== current.chartValueColumn ||
+    !arraysEqual(form.requiredColumns, current.requiredColumns)
   )
 })
 
@@ -62,6 +85,7 @@ const applyChanges = () => {
     lockFirstColumnByDefault: form.lockFirstColumnByDefault,
     chartLabelColumn: normCol(form.chartLabelColumn),
     chartValueColumn: normCol(form.chartValueColumn),
+    requiredColumns: form.requiredColumns,
   })
   syncForm()
   showToast(
@@ -211,6 +235,52 @@ const discardChanges = () => {
       </div>
     </section>
 
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+      <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">필수 컬럼 검증</h2>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        비어 있으면 안 되는 컬럼을 지정합니다. 시트에 해당 컬럼이 아예 없거나 값이 비어 있으면 검증 패널에 오류로 표시됩니다.
+      </p>
+
+      <div class="mt-5 flex flex-wrap gap-2">
+        <span
+          v-for="(col, index) in form.requiredColumns"
+          :key="col"
+          class="inline-flex items-center gap-1.5 rounded-full bg-violet-100 py-1 pl-3 pr-1.5 text-xs font-medium text-violet-800 dark:bg-violet-900/40 dark:text-violet-200"
+        >
+          {{ col }}
+          <button
+            type="button"
+            class="rounded-full p-0.5 text-violet-600 hover:bg-violet-200/80 dark:text-violet-300 dark:hover:bg-violet-800/60"
+            :aria-label="`${col} 필수 컬럼 제거`"
+            @click="removeRequiredColumn(index)"
+          >
+            ×
+          </button>
+        </span>
+        <p v-if="form.requiredColumns.length === 0" class="text-xs text-slate-500 dark:text-slate-400">
+          지정된 필수 컬럼이 없습니다.
+        </p>
+      </div>
+
+      <div class="mt-4 flex gap-2">
+        <input
+          v-model="newRequiredColumn"
+          type="text"
+          class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none ring-0 placeholder:text-slate-400 focus:border-violet-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+          placeholder="컬럼 이름 입력 후 Enter"
+          autocomplete="off"
+          @keydown.enter.prevent="addRequiredColumn"
+        />
+        <button
+          type="button"
+          class="shrink-0 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+          @click="addRequiredColumn"
+        >
+          추가
+        </button>
+      </div>
+    </section>
+
     <section class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-900/40">
       <p class="text-sm text-slate-600 dark:text-slate-400">
         {{ hasChanges ? '저장되지 않은 변경사항이 있습니다.' : '현재 저장된 설정과 동일합니다.' }}
@@ -251,6 +321,10 @@ const discardChanges = () => {
         · 차트 값
         <strong class="font-semibold text-slate-900 dark:text-slate-100">
           {{ form.chartValueColumn.trim() || '자동' }}
+        </strong>
+        · 필수 컬럼
+        <strong class="font-semibold text-slate-900 dark:text-slate-100">
+          {{ form.requiredColumns.length > 0 ? form.requiredColumns.join(', ') : '없음' }}
         </strong>
       </p>
     </section>

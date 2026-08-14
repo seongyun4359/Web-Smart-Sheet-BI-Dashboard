@@ -30,6 +30,7 @@ describe('useSettingsStore', () => {
     expect(store.lockFirstColumnByDefault).toBe(true)
     expect(store.chartLabelColumn).toBeNull()
     expect(store.chartValueColumn).toBeNull()
+    expect(store.requiredColumns).toEqual(['month', 'branch'])
   })
 
   it('applySettings 호출 시 localStorage에 저장한다', () => {
@@ -42,6 +43,7 @@ describe('useSettingsStore', () => {
       lockFirstColumnByDefault: true,
       chartLabelColumn: 'branch',
       chartValueColumn: 'sales',
+      requiredColumns: ['branch', 'amount'],
     })
 
     expect(JSON.parse(window.localStorage.getItem(SETTINGS_STORAGE_KEY) ?? '{}')).toEqual({
@@ -50,7 +52,19 @@ describe('useSettingsStore', () => {
       lockFirstColumnByDefault: true,
       chartLabelColumn: 'branch',
       chartValueColumn: 'sales',
+      requiredColumns: ['branch', 'amount'],
     })
+  })
+
+  it('필수 컬럼 목록의 공백·중복 값을 정리해 저장한다', () => {
+    const store = useSettingsStore()
+    store.hydrate()
+
+    store.applySettings({
+      requiredColumns: [' month ', 'branch', 'branch', '', '  '],
+    })
+
+    expect(store.requiredColumns).toEqual(['month', 'branch'])
   })
 
   it('필드 직접 변경만으로는 localStorage에 저장하지 않는다', () => {
