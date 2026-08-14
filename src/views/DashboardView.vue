@@ -58,9 +58,10 @@ const rowSelection = {
   enableClickSelection: true,
 }
 
+/** 행 추가/삭제로는 리마운트하지 않도록 rows.length는 키에서 제외 (실행취소 이력 보존) */
 const gridKey = computed(
   () =>
-    `${dataSource.value}:${fileName.value ?? ''}:${activeSheetName.value ?? ''}:${columns.value.join('|')}:${rows.value.length}`,
+    `${dataSource.value}:${fileName.value ?? ''}:${activeSheetName.value ?? ''}:${columns.value.join('|')}`,
 )
 
 const columnDefs = computed<ColDef[]>(() => {
